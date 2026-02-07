@@ -1,56 +1,125 @@
 """
-Classify whales into 4 tiers based on activity
-Run this once to update your whale list
+Configuration file for Whale Tracker Bot
+All settings, filters, and constants
 """
 
-import json
+import os
+from dotenv import load_dotenv
 
-# Load your current whale list
-with open('whales_tiered_final.json', 'r') as f:
-    whales = json.load(f)
+load_dotenv()
 
-print("🔍 Classifying whales into tiers...")
-print(f"Total whales: {len(whales)}")
+# ============================================================
+# API KEYS
+# ============================================================
 
-# Tier criteria
-tier_1_count = 0
-tier_2_count = 0
-tier_3_count = 0
-tier_4_count = 0
+HELIUS_API_KEY = os.getenv('HELIUS_API_KEY')
+ALCHEMY_API_KEY = os.getenv('ALCHEMY_API_KEY')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-for whale in whales:
-    win_count = whale.get('win_count', 0)
-    win_rate = whale.get('win_rate', 0)
-    
-    # Classify based on win_count and win_rate
-    if win_count >= 10 and win_rate >= 60:
-        whale['tier'] = 1
-        whale['check_interval'] = 30  # 30 seconds
-        whale['priority'] = 'high'
-        tier_1_count += 1
-    elif win_count >= 5 and win_rate >= 50:
-        whale['tier'] = 2
-        whale['check_interval'] = 180  # 3 minutes
-        whale['priority'] = 'medium'
-        tier_2_count += 1
-    elif win_count >= 2 or win_rate >= 40:
-        whale['tier'] = 3
-        whale['check_interval'] = 600  # 10 minutes
-        whale['priority'] = 'low'
-        tier_3_count += 1
-    else:
-        whale['tier'] = 4
-        whale['check_interval'] = 86400  # 24 hours
-        whale['priority'] = 'dormant'
-        tier_4_count += 1
+# ============================================================
+# ADMIN SETTINGS
+# ============================================================
 
-# Save updated list
-with open('whales_tiered_final.json', 'w') as f:
-    json.dump(whales, f, indent=2)
+ADMIN_USER_ID = 1930784205
 
-print("\n✅ Classification complete!")
-print(f"🔥 Tier 1 (Elite - 30s): {tier_1_count}")
-print(f"⭐ Tier 2 (Active - 3m): {tier_2_count}")
-print(f"📊 Tier 3 (Semi-Active - 10m): {tier_3_count}")
-print(f"💤 Tier 4 (Dormant - 24h): {tier_4_count}")
-print(f"\n🎯 Total: {len(whales)} whales classified")
+# ============================================================
+# CHAT IDS
+# ============================================================
+
+PRIVATE_CHAT_ID = "1930784205"
+GROUP_CHAT_ID = "-1003704810993"
+
+# ============================================================
+# TIER SYSTEM CONFIGURATION
+# ============================================================
+
+TIER_CONFIG = {
+    1: {
+        'name': 'Elite Active Whales',
+        'check_interval': 30,  # 30 seconds - REAL-TIME
+        'description': 'Top performers, checked constantly',
+        'alert_priority': 'HIGH',
+        'emoji': '🔥'
+    },
+    2: {
+        'name': 'Active Whales',
+        'check_interval': 180,  # 3 minutes
+        'description': 'Regular performers, frequent checks',
+        'alert_priority': 'MEDIUM',
+        'emoji': '⭐'
+    },
+    3: {
+        'name': 'Semi-Active Whales',
+        'check_interval': 600,  # 10 minutes
+        'description': 'Occasional traders, background monitoring',
+        'alert_priority': 'LOW',
+        'emoji': '📊'
+    },
+    4: {
+        'name': 'Dormant Whales',
+        'check_interval': 86400,  # 24 hours
+        'description': 'Inactive, wake-up alerts only',
+        'alert_priority': 'WAKE_UP',
+        'emoji': '💤'
+    }
+}
+
+# ============================================================
+# MONITORING SETTINGS
+# ============================================================
+
+CHECK_INTERVAL = 180  # Default fallback
+SELL_CHECK_INTERVAL = 120
+PERFORMANCE_CHECK_INTERVAL = 60
+
+# ============================================================
+# FILTER DEFAULTS
+# ============================================================
+
+DEFAULT_FILTERS = {
+    'mc_min': 100000,
+    'mc_max': 10000000,
+    'liq_min': 10000,
+    'vol_liq_max': 50,
+    'buy_sell_max': 5,
+    'min_age_hours': 1,
+    'min_txns': 50
+}
+
+# ============================================================
+# BLACKLISTED TOKENS
+# ============================================================
+
+BLACKLIST_TOKENS = {
+    'So11111111111111111111111111111111111111112',
+    'EPjFWdd5AufqSSqewy3WZaNW1pF3Q8dTMm24FYzJR8o',
+    'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
+    'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+    'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+    '0x4200000000000000000000000000000000000006',
+    '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+}
+
+# ============================================================
+# API ENDPOINTS
+# ============================================================
+
+HELIUS_RPC_URL = f"https://mainnet.helius-rpc.com/?api-key={HELIUS_API_KEY}"
+ALCHEMY_BASE_URL = f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+DEXSCREENER_API = "https://api.dexscreener.com/latest/dex/tokens"
+
+# ============================================================
+# ALERT MILESTONES
+# ============================================================
+
+PRICE_MILESTONES = [10, 25, 50, 100, 200]
+
+# ============================================================
+# FILE PATHS
+# ============================================================
+
+WHALE_LIST_FILE = 'whales_tiered_final.json'
+BOT_STATE_FILE = 'bot_state.json'
