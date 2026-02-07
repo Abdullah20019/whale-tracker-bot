@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-02-07T18:12:43.026580",
+  "total_kols": 4,
+  "kols": [
+    {
+      "address": "6jTQCFZR8JwvvenVGa3RzGM3a5YEagk9kQXDpHHdpump",
+      "name": "ansem",
+      "chain": "sol",
+      "twitter": "@blknoiz06",
+      "winrate": 0,
+      "pnl_7d": 0,
+      "total_trades": 0,
+      "realized_profit": 0,
+      "source": "dune_analytics",
+      "tier": 1
+    },
+    {
+      "address": "GJTcqgb9qKe6rT4RKcKZkKbP4Yz4FmvxmLVHqbLcpump",
+      "name": "hsaka",
+      "chain": "sol",
+      "twitter": "@HsakaTrades",
+      "winrate": 0,
+      "pnl_7d": 0,
+      "total_trades": 0,
+      "realized_profit": 0,
+      "source": "dune_analytics",
+      "tier": 1
+    },
+    {
+      "address": "3VxH3BfXzKmGXDvJYqVKZqcUvCCLYEBPYH1ELfXxxxxx",
+      "name": "Toly (Anatoly)",
+      "chain": "sol",
+      "twitter": "@aeyakovenko",
+      "winrate": 0,
+      "pnl_7d": 0,
+      "total_trades": 0,
+      "realized_profit": 0,
+      "source": "manual",
+      "tier": 1
+    },
+    {
+      "address": "0x1234567890abcdef1234567890abcdef12345678",
+      "name": "Base God",
+      "chain": "base",
+      "twitter": "@BasedBeffJezos",
+      "winrate": 0,
+      "pnl_7d": 0,
+      "total_trades": 0,
+      "realized_profit": 0,
+      "source": "manual",
+      "tier": 1
+    }
+  ],
+  "stats": {
+    "by_chain": {
+      "sol": 3,
+      "base": 1
+    },
+    "by_tier": {
+      "1": 4,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    },
+    "by_source": {
+      "dune_analytics": 2,
+      "manual": 2
+    }
+  }
+}
