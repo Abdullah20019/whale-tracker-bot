@@ -4436,9 +4436,9 @@
     "source": "active_base_holders",
     "discovered_date": "2026-02-07",
     "is_active": true,
-    "tier": 2,
-    "check_interval": 180,
-    "priority": "medium"
+    "tier": 1,
+    "check_interval": 30,
+    "priority": "high"
   },
   {
     "address": "0xb43341d20df16c11f8b390dc1a9131a353d75f5e",
@@ -11473,10 +11473,10 @@
     "ranking_score": 102177.54685691741,
     "source": "moltbook_clawdbot_holders",
     "discovered_date": "2026-02-07",
-    "tier": 3,
+    "tier": 2,
     "is_active": true,
-    "check_interval": 600,
-    "priority": "low"
+    "check_interval": 180,
+    "priority": "medium"
   },
   {
     "address": "0xf1942a9b1b0037a20350358c9fe9ffd96821c685",
@@ -11491,10 +11491,10 @@
     "ranking_score": 102156.1301735627,
     "source": "base_runner_holders",
     "discovered_date": "2026-02-07",
-    "tier": 3,
+    "tier": 2,
     "is_active": true,
-    "check_interval": 600,
-    "priority": "low"
+    "check_interval": 180,
+    "priority": "medium"
   },
   {
     "address": "0xe783d5651e8d06844107d0473f96fa552d4bb3e1",
@@ -33290,9 +33290,9 @@
       "total_recent_txs": 5
     },
     "activity_score": 89,
-    "tier": 4,
-    "check_interval": 86400,
-    "priority": "dormant"
+    "tier": 3,
+    "check_interval": 600,
+    "priority": "low"
   },
   {
     "address": "3pH62neuo6Jo9LQ82Se2ZUV7ecxD9rKsMrv3RYEt95Dd",
@@ -33314,9 +33314,9 @@
       "total_recent_txs": 5
     },
     "activity_score": 89,
-    "tier": 4,
-    "check_interval": 86400,
-    "priority": "dormant"
+    "tier": 3,
+    "check_interval": 600,
+    "priority": "low"
   },
   {
     "address": "4w2BRk5m8Z6f47Rycub9GyjcM8uzYEBpQ38S6KR6sBZR",
@@ -33338,9 +33338,9 @@
       "total_recent_txs": 5
     },
     "activity_score": 89,
-    "tier": 4,
-    "check_interval": 86400,
-    "priority": "dormant"
+    "tier": 3,
+    "check_interval": 600,
+    "priority": "low"
   },
   {
     "address": "HBxZShcE86UMmF93KUM8eWJKqeEXi5cqWCLYLMMhqMYm",
@@ -33362,9 +33362,9 @@
       "total_recent_txs": 5
     },
     "activity_score": 89,
-    "tier": 4,
-    "check_interval": 86400,
-    "priority": "dormant"
+    "tier": 3,
+    "check_interval": 600,
+    "priority": "low"
   },
   {
     "address": "2HpEPrBj5B6EKZ7QNR5kkyY4cB4cbAFANKtp821SQqEc",
@@ -42729,7 +42729,7 @@
   {
     "address": "6jTQCFZR8JwvvenVGa3RzGM3a5YEagk9kQXDpHHdpump",
     "chain": "sol",
-    "tier": 1,
+    "tier": 4,
     "name": "ansem",
     "twitter": "@blknoiz06",
     "type": "kol",
@@ -42742,12 +42742,14 @@
     "total_calls": 0,
     "pnl_7d": 0,
     "last_active": null,
-    "avg_gain_per_win": 0
+    "avg_gain_per_win": 0,
+    "check_interval": 86400,
+    "priority": "dormant"
   },
   {
     "address": "GJTcqgb9qKe6rT4RKcKZkKbP4Yz4FmvxmLVHqbLcpump",
     "chain": "sol",
-    "tier": 1,
+    "tier": 4,
     "name": "hsaka",
     "twitter": "@HsakaTrades",
     "type": "kol",
@@ -42760,12 +42762,14 @@
     "total_calls": 0,
     "pnl_7d": 0,
     "last_active": null,
-    "avg_gain_per_win": 0
+    "avg_gain_per_win": 0,
+    "check_interval": 86400,
+    "priority": "dormant"
   },
   {
     "address": "3VxH3BfXzKmGXDvJYqVKZqcUvCCLYEBPYH1ELfXxxxxx",
     "chain": "sol",
-    "tier": 1,
+    "tier": 4,
     "name": "Toly (Anatoly)",
     "twitter": "@aeyakovenko",
     "type": "kol",
@@ -42778,12 +42782,14 @@
     "total_calls": 0,
     "pnl_7d": 0,
     "last_active": null,
-    "avg_gain_per_win": 0
+    "avg_gain_per_win": 0,
+    "check_interval": 86400,
+    "priority": "dormant"
   },
   {
     "address": "0x1234567890abcdef1234567890abcdef12345678",
     "chain": "base",
-    "tier": 1,
+    "tier": 4,
     "name": "Base God",
     "twitter": "@BasedBeffJezos",
     "type": "kol",
@@ -42796,6 +42802,8 @@
     "total_calls": 0,
     "pnl_7d": 0,
     "last_active": null,
-    "avg_gain_per_win": 0
+    "avg_gain_per_win": 0,
+    "check_interval": 86400,
+    "priority": "dormant"
   }
 ]
