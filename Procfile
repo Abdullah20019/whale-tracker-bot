@@ -1,0 +1,1 @@
+echo worker: python track_whales_v4_advanced.py
