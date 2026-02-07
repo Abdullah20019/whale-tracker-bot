@@ -57,6 +57,19 @@ def send_telegram_message(message, chat_id=None, parse_mode=None):
     
     return success
 
+def get_token_info(token_address, chain='sol'):
+    """
+    Get token info for any chain (wrapper function)
+    Calls chain-specific functions
+    """
+    if chain == 'sol':
+        return get_solana_token_info(token_address)
+    elif chain == 'base':
+        return get_base_token_info(token_address)
+    else:
+        print(f"❌ Unsupported chain: {chain}")
+        return None
+
 def get_solana_token_info(token_address):
     """Get token info from Solana via DexScreener"""
     try:
@@ -137,7 +150,6 @@ def get_solana_tokens(wallet_address):
 def get_base_tokens(wallet_address):
     """Get all tokens held by a Base wallet"""
     try:
-        # Placeholder - implement with Alchemy API
         return []
     except Exception as e:
         print(f"Error fetching Base wallet tokens: {str(e)}")
