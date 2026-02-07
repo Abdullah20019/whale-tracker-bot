@@ -1,0 +1,37 @@
+# Sensitive files - NEVER upload these!
+*.txt
+github*.txt
+*key*.txt
+*token*.txt
+*secret*.txt
+
+# Environment variables (IMPORTANT - Don't upload API keys!)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Bot data (optional - include if you want to keep data private)
+bot_state.json
+whales_tiered_final.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+# Sensitive files
+*.txt
+github*.txt
+

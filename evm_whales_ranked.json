@@ -1,0 +1,82 @@
+[
+  {
+    "address": "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
+    "chain": "eth",
+    "total_pnl": 500000,
+    "total_trades": 50,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 500000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8",
+    "chain": "eth",
+    "total_pnl": 400000,
+    "total_trades": 60,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 400000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0x8315177aB297bA92A06054cE80a67Ed4DBd7ed3a",
+    "chain": "eth",
+    "total_pnl": 300000,
+    "total_trades": 70,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 300000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0x40B38765696e3d5d8d9d834D8AaD4bB6e418E489",
+    "chain": "eth",
+    "total_pnl": 200000,
+    "total_trades": 80,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 200000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0x1111111254fb6c44bAC0beD2854e76F90643097d",
+    "chain": "eth",
+    "total_pnl": 100000,
+    "total_trades": 90,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 100000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A",
+    "chain": "base",
+    "total_pnl": 300000,
+    "total_trades": 50,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 300000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0x4200000000000000000000000000000000000006",
+    "chain": "base",
+    "total_pnl": 200000,
+    "total_trades": 60,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 200000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  },
+  {
+    "address": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+    "chain": "base",
+    "total_pnl": 100000,
+    "total_trades": 70,
+    "avg_profit_per_trade": 2000,
+    "ranking_score": 100000,
+    "discovered_date": "2026-02-07",
+    "note": "Sample address - replace with real discovery"
+  }
+]
