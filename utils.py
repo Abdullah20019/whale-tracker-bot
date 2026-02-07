@@ -58,10 +58,7 @@ def send_telegram_message(message, chat_id=None, parse_mode=None):
     return success
 
 def get_token_info(token_address, chain='sol'):
-    """
-    Get token info for any chain (wrapper function)
-    Calls chain-specific functions
-    """
+    """Get token info for any chain (wrapper function)"""
     if chain == 'sol':
         return get_solana_token_info(token_address)
     elif chain == 'base':
@@ -177,6 +174,16 @@ def check_token_quality(token_info, filters):
             return False, f"Suspicious volume/liq ratio ({vol_liq_ratio:.1f}%)"
     
     return True, "Passed all filters"
+
+def passes_filters(token_info, filters):
+    """
+    Alias for check_token_quality
+    Returns True/False instead of tuple
+    """
+    passed, reason = check_token_quality(token_info, filters)
+    if not passed:
+        print(f"  ⚠️ Filter failed: {reason}")
+    return passed
 
 def format_number(num):
     """Format large numbers with K, M, B suffixes"""
