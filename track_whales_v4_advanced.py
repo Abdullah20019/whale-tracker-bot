@@ -41,17 +41,39 @@ bot_state = {
 def load_whales():
     """Load whale wallets from JSON file"""
     try:
+        # Try whales_tiered_final.json first
         with open('whales_tiered_final.json', 'r') as f:
             data = json.load(f)
-            return data.get('solana', []), data.get('base', [])
+            
+            # Check if data is a dict with 'solana' and 'base' keys
+            if isinstance(data, dict):
+                return data.get('solana', []), data.get('base', [])
+            # If data is a list, assume it's all Solana whales
+            elif isinstance(data, list):
+                return data, []
+            else:
+                return [], []
+                
     except FileNotFoundError:
         try:
+            # Try evm_whales_ranked.json as fallback
             with open('evm_whales_ranked.json', 'r') as f:
                 data = json.load(f)
-                return data.get('solana', []), data.get('base', [])
-        except:
-            print("❌ Whale list file not found!")
+                
+                # Check if data is a dict with 'solana' and 'base' keys
+                if isinstance(data, dict):
+                    return data.get('solana', []), data.get('base', [])
+                # If data is a list, assume it's all Solana whales
+                elif isinstance(data, list):
+                    return data, []
+                else:
+                    return [], []
+        except Exception as e:
+            print(f"❌ Error loading whale list: {e}")
             return [], []
+    except Exception as e:
+        print(f"❌ Error parsing whale list: {e}")
+        return [], []
 
 def send_telegram_message(message, chat_id=None):
     """Send message to Telegram"""
