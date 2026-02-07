@@ -1,10 +1,2 @@
-python-telegram-bot==20.7
-web3==6.15.1
-moralis==0.1.35
 requests==2.31.0
 python-dotenv==1.0.0
-solana==0.34.3
-solders==0.21.0
-aiohttp==3.9.1
-pandas==2.1.4
-httpx==0.25.2
