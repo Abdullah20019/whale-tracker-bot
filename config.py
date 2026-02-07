@@ -1,6 +1,6 @@
 """
 Configuration file for Whale Tracker Bot
-All settings, filters, and constants
+All settings, filters, and tier definitions
 """
 
 import os
@@ -8,118 +8,78 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ============================================================
-# API KEYS
-# ============================================================
+# Telegram Configuration
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = int(os.getenv('TELEGRAM_CHAT_ID')) if os.getenv('TELEGRAM_CHAT_ID') else None
+TELEGRAM_GROUP_ID = int(os.getenv('TELEGRAM_GROUP_ID')) if os.getenv('TELEGRAM_GROUP_ID') else None
+ADMIN_USER_ID = int(os.getenv('ADMIN_USER_ID')) if os.getenv('ADMIN_USER_ID') else None
 
+# API Keys
 HELIUS_API_KEY = os.getenv('HELIUS_API_KEY')
 ALCHEMY_API_KEY = os.getenv('ALCHEMY_API_KEY')
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# ============================================================
-# ADMIN SETTINGS
-# ============================================================
+# Token Quality Filters
+DEFAULT_FILTERS = {
+    'mc_min': 100_000,          # Min market cap: $100K
+    'mc_max': 10_000_000,       # Max market cap: $10M
+    'liq_min': 10_000,          # Min liquidity: $10K
+    'vol_liq_max': 50,          # Max volume/liquidity ratio: 50x
+    'min_holders': 50,          # Min holder count
+    'min_age_hours': 1          # Min token age in hours
+}
 
-ADMIN_USER_ID = 1930784205
-
-# ============================================================
-# CHAT IDS
-# ============================================================
-
-PRIVATE_CHAT_ID = "1930784205"
-GROUP_CHAT_ID = "-1003704810993"
-
-# ============================================================
-# TIER SYSTEM CONFIGURATION
-# ============================================================
-
+# Tier System Configuration
 TIER_CONFIG = {
-    1: {
-        'name': 'Elite Active Whales',
-        'check_interval': 30,  # 30 seconds - REAL-TIME
-        'description': 'Top performers, checked constantly',
-        'alert_priority': 'HIGH',
+    1: {  # Elite - Top performers
+        'name': 'Elite',
+        'check_interval': 30,        # Check every 30 seconds
+        'requirements': {
+            'min_win_rate': 60,      # 60%+ win rate
+            'min_avg_gain': 50,      # 50%+ average gain
+            'min_calls': 10          # 10+ successful calls
+        },
         'emoji': '🔥'
     },
-    2: {
-        'name': 'Active Whales',
-        'check_interval': 180,  # 3 minutes
-        'description': 'Regular performers, frequent checks',
-        'alert_priority': 'MEDIUM',
+    2: {  # Active - Good performers
+        'name': 'Active',
+        'check_interval': 180,       # Check every 3 minutes
+        'requirements': {
+            'min_win_rate': 50,      # 50%+ win rate
+            'min_avg_gain': 30,      # 30%+ average gain
+            'min_calls': 5           # 5+ successful calls
+        },
         'emoji': '⭐'
     },
-    3: {
-        'name': 'Semi-Active Whales',
-        'check_interval': 600,  # 10 minutes
-        'description': 'Occasional traders, background monitoring',
-        'alert_priority': 'LOW',
+    3: {  # Semi-Active - Decent performers
+        'name': 'Semi-Active',
+        'check_interval': 600,       # Check every 10 minutes
+        'requirements': {
+            'min_win_rate': 40,      # 40%+ win rate
+            'min_avg_gain': 10,      # 10%+ average gain
+            'min_calls': 2           # 2+ successful calls
+        },
         'emoji': '📊'
     },
-    4: {
-        'name': 'Dormant Whales',
-        'check_interval': 86400,  # 24 hours
-        'description': 'Inactive, wake-up alerts only',
-        'alert_priority': 'WAKE_UP',
+    4: {  # Dormant - Inactive or poor performers
+        'name': 'Dormant',
+        'check_interval': 86400,     # Check every 24 hours
+        'requirements': {
+            'min_win_rate': 0,
+            'min_avg_gain': 0,
+            'min_calls': 0
+        },
         'emoji': '💤'
     }
 }
 
-# ============================================================
-# MONITORING SETTINGS
-# ============================================================
+# Performance Tracking
+PRICE_MILESTONES = [10, 25, 50, 100, 200, 500, 1000]  # Alert at these % gains
 
-CHECK_INTERVAL = 180  # Default fallback
-SELL_CHECK_INTERVAL = 120
-PERFORMANCE_CHECK_INTERVAL = 60
+# Sell Detection
+SELL_THRESHOLD = 0.3  # Alert when whale sells 30%+ of position
 
-# ============================================================
-# FILTER DEFAULTS
-# ============================================================
+# Multi-Buy Detection
+MULTI_BUY_THRESHOLD = 2  # Alert when 2+ whales buy same token
 
-DEFAULT_FILTERS = {
-    'mc_min': 100000,
-    'mc_max': 10000000,
-    'liq_min': 10000,
-    'vol_liq_max': 50,
-    'buy_sell_max': 5,
-    'min_age_hours': 1,
-    'min_txns': 50
-}
-
-# ============================================================
-# BLACKLISTED TOKENS
-# ============================================================
-
-BLACKLIST_TOKENS = {
-    'So11111111111111111111111111111111111111112',
-    'EPjFWdd5AufqSSqewy3WZaNW1pF3Q8dTMm24FYzJR8o',
-    'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
-    'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-    'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-    '0x4200000000000000000000000000000000000006',
-    '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-}
-
-# ============================================================
-# API ENDPOINTS
-# ============================================================
-
-HELIUS_RPC_URL = f"https://mainnet.helius-rpc.com/?api-key={HELIUS_API_KEY}"
-ALCHEMY_BASE_URL = f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
-DEXSCREENER_API = "https://api.dexscreener.com/latest/dex/tokens"
-
-# ============================================================
-# ALERT MILESTONES
-# ============================================================
-
-PRICE_MILESTONES = [10, 25, 50, 100, 200]
-
-# ============================================================
-# FILE PATHS
-# ============================================================
-
-WHALE_LIST_FILE = 'whales_tiered_final.json'
-BOT_STATE_FILE = 'bot_state.json'
+# Rate Limiting
+API_RATE_LIMIT_DELAY = 0.5  # Seconds between API calls
