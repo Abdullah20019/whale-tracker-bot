@@ -6,7 +6,7 @@ import requests
 import time
 import os
 
-# Get config values - handle missing TELEGRAM_GROUP_ID gracefully
+# Get config values
 try:
     from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
     try:
@@ -21,7 +21,6 @@ except ImportError:
 def send_telegram_message(message, chat_id=None, parse_mode=None):
     """Send message to Telegram"""
     if not TELEGRAM_BOT_TOKEN:
-        print("❌ Telegram bot token not set")
         return False
     
     if chat_id:
@@ -34,7 +33,6 @@ def send_telegram_message(message, chat_id=None, parse_mode=None):
             target_chats.append(TELEGRAM_GROUP_ID)
     
     if not target_chats:
-        print("❌ No Telegram chat IDs configured")
         return False
     
     success = False
@@ -46,33 +44,30 @@ def send_telegram_message(message, chat_id=None, parse_mode=None):
                 payload['parse_mode'] = parse_mode
             
             response = requests.post(url, json=payload, timeout=10)
-            
             if response.status_code == 200:
                 print(f"   ✅ Sent to {target}!")
                 success = True
-            else:
-                print(f"   ⚠️ Failed: {response.status_code}")
         except Exception as e:
             print(f"   ❌ Error: {str(e)}")
-    
     return success
 
+def send_telegram_alert(message):
+    """Alias for send_telegram_message"""
+    return send_telegram_message(message)
+
 def get_token_info(token_address, chain='sol'):
-    """Get token info for any chain (wrapper function)"""
+    """Get token info for any chain"""
     if chain == 'sol':
         return get_solana_token_info(token_address)
     elif chain == 'base':
         return get_base_token_info(token_address)
-    else:
-        print(f"❌ Unsupported chain: {chain}")
-        return None
+    return None
 
 def get_solana_token_info(token_address):
-    """Get token info from Solana via DexScreener"""
+    """Get token info from Solana"""
     try:
         url = f"https://api.dexscreener.com/latest/dex/tokens/{token_address}"
         response = requests.get(url, timeout=10)
-        
         if response.status_code == 200:
             data = response.json()
             if data.get('pairs') and len(data['pairs']) > 0:
@@ -90,15 +85,14 @@ def get_solana_token_info(token_address):
                 }
         return None
     except Exception as e:
-        print(f"Error fetching Solana token: {str(e)}")
+        print(f"Error: {str(e)}")
         return None
 
 def get_base_token_info(token_address):
-    """Get token info from Base chain via DexScreener"""
+    """Get token info from Base"""
     try:
         url = f"https://api.dexscreener.com/latest/dex/tokens/{token_address}"
         response = requests.get(url, timeout=10)
-        
         if response.status_code == 200:
             data = response.json()
             if data.get('pairs'):
@@ -118,16 +112,14 @@ def get_base_token_info(token_address):
                     }
         return None
     except Exception as e:
-        print(f"Error fetching Base token: {str(e)}")
+        print(f"Error: {str(e)}")
         return None
 
 def get_solana_tokens(wallet_address):
-    """Get all tokens held by a Solana wallet"""
+    """Get all tokens in Solana wallet"""
     try:
         url = f"https://public-api.solscan.io/account/tokens?account={wallet_address}"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
-        
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
         if response.status_code == 200:
             data = response.json()
             tokens = []
@@ -140,20 +132,15 @@ def get_solana_tokens(wallet_address):
                     })
             return tokens
         return []
-    except Exception as e:
-        print(f"Error fetching Solana wallet tokens: {str(e)}")
+    except:
         return []
 
 def get_base_tokens(wallet_address):
-    """Get all tokens held by a Base wallet"""
-    try:
-        return []
-    except Exception as e:
-        print(f"Error fetching Base wallet tokens: {str(e)}")
-        return []
+    """Get all tokens in Base wallet"""
+    return []
 
 def check_token_quality(token_info, filters):
-    """Check if token passes quality filters"""
+    """Check if token passes filters"""
     if not token_info:
         return False, "No token info"
     
@@ -162,31 +149,28 @@ def check_token_quality(token_info, filters):
     volume_24h = token_info.get('volume_24h', 0)
     
     if mc < filters.get('mc_min', 0):
-        return False, f"MC too low (${mc:,.0f})"
+        return False, f"MC too low"
     if mc > filters.get('mc_max', float('inf')):
-        return False, f"MC too high (${mc:,.0f})"
+        return False, f"MC too high"
     if liquidity < filters.get('liq_min', 0):
-        return False, f"Liquidity too low (${liquidity:,.0f})"
+        return False, f"Liquidity too low"
     
     if liquidity > 0:
         vol_liq_ratio = (volume_24h / liquidity) * 100
         if vol_liq_ratio > filters.get('vol_liq_max', 100):
-            return False, f"Suspicious volume/liq ratio ({vol_liq_ratio:.1f}%)"
+            return False, f"Suspicious volume"
     
-    return True, "Passed all filters"
+    return True, "Passed"
 
 def passes_filters(token_info, filters):
-    """
-    Alias for check_token_quality
-    Returns True/False instead of tuple
-    """
+    """Returns True/False if token passes filters"""
     passed, reason = check_token_quality(token_info, filters)
     if not passed:
-        print(f"  ⚠️ Filter failed: {reason}")
+        print(f"  ⚠️ {reason}")
     return passed
 
 def format_number(num):
-    """Format large numbers with K, M, B suffixes"""
+    """Format numbers"""
     if num >= 1_000_000_000:
         return f"${num/1_000_000_000:.2f}B"
     elif num >= 1_000_000:
@@ -197,21 +181,18 @@ def format_number(num):
         return f"${num:.2f}"
 
 def get_wallet_transactions(wallet_address, chain='sol'):
-    """Get recent transactions for a wallet"""
+    """Get wallet transactions"""
     return []
 
 def get_token_holders(token_address, chain='sol'):
-    """Get top holders of a token"""
+    """Get token holders"""
     return []
 
 def check_whale_balance(wallet_address, token_address, chain='sol'):
-    """Check if wallet still holds a token"""
+    """Check if wallet holds token"""
     if chain == 'sol':
         tokens = get_solana_tokens(wallet_address)
         for token in tokens:
             if token.get('mint', '').lower() == token_address.lower():
                 return token.get('amount', 0)
-    elif chain == 'base':
-        tokens = get_base_tokens(wallet_address)
-        pass
     return 0
