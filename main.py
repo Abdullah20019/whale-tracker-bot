@@ -6,6 +6,7 @@ Modular architecture for easy feature additions
 import json
 import time
 import threading
+import requests
 from datetime import datetime
 
 # Import all modules
