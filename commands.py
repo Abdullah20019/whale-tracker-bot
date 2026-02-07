@@ -1,800 +1,609 @@
 """
 All Telegram command handlers
-Easy to add new commands here without touching main code
+Easy to add new commands by adding functions here
 """
 
 import json
-import time
 from datetime import datetime
-from config import ADMIN_USER_ID, WHALE_LIST_FILE, TIER_CONFIG
-from state import bot_state, save_bot_state
-from utils import is_admin
+from config import TIER_CONFIG
 
-# ============================================================
-# COMMAND: /stats
-# ============================================================
+def handle_command(update, context, bot_state):
+    """
+    Route commands to appropriate handlers
+    """
+    chat_id = update.message.chat_id
+    text = update.message.text.strip()
 
-def get_bot_stats():
-    """Get bot statistics"""
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    tier_1 = [w for w in whales if w.get('tier') == 1]
-    tier_2 = [w for w in whales if w.get('tier') == 2]
-    tier_3 = [w for w in whales if w.get('tier') == 3]
-    tier_4 = [w for w in whales if w.get('tier') == 4]
-    
-    uptime_hours = (time.time() - bot_state.get('start_time', time.time())) / 3600
-    
-    tracked_count = len(bot_state.get('tracked_tokens', {}))
-    multi_buy_count = len(bot_state.get('multi_buys', {}))
-    monitored_positions = len(bot_state.get('whale_token_balances', {}))
-    
-    return f"""
-📊 <b>BOT STATISTICS</b>
+    # Command routing
+    if text == '/start':
+        return cmd_start(chat_id)
+    elif text == '/help':
+        return cmd_help(chat_id)
+    elif text == '/stats':
+        return cmd_stats(chat_id, bot_state)
+    elif text == '/tracked':
+        return cmd_tracked(chat_id, bot_state)
+    elif text == '/topwhales':
+        return cmd_topwhales(chat_id, bot_state)
+    elif text == '/performance':
+        return cmd_performance(chat_id, bot_state)
+    elif text == '/tiers':
+        return cmd_tiers(chat_id, bot_state)
+    elif text == '/tier1':
+        return cmd_tier_detail(chat_id, bot_state, 1)
+    elif text == '/tier2':
+        return cmd_tier_detail(chat_id, bot_state, 2)
+    elif text == '/tier3':
+        return cmd_tier_detail(chat_id, bot_state, 3)
+    elif text == '/tier4':
+        return cmd_tier_detail(chat_id, bot_state, 4)
+    elif text == '/multibuys':
+        return cmd_multibuys(chat_id, bot_state)
+    elif text == '/promotions':
+        return cmd_promotions(chat_id, bot_state)
+    elif text == '/guide':
+        return cmd_guide(chat_id)
+    elif text == '/kols':
+        return cmd_kols(chat_id, bot_state)
+    else:
+        return "❌ Unknown command. Use /help to see available commands."
 
-━━━━━━━━━━━━━━━━━━━━
-🐋 <b>WHALES TRACKED</b>
-━━━━━━━━━━━━━━━━━━━━
-🔥 Tier 1 (Elite): <b>{len(tier_1)}</b>
-⭐ Tier 2 (Active): <b>{len(tier_2)}</b>
-📊 Tier 3 (Semi): <b>{len(tier_3)}</b>
-💤 Tier 4 (Dormant): <b>{len(tier_4)}</b>
-🎯 Total: <b>{len(whales)}</b>
+def cmd_start(chat_id):
+    """Welcome message"""
+    msg = """
+🐋 Welcome to Whale Tracker Bot V4!
 
-━━━━━━━━━━━━━━━━━━━━
-📈 <b>ACTIVITY</b>
-━━━━━━━━━━━━━━━━━━━━
-Alerts Sent: <b>{bot_state.get('alerts_sent', 0)}</b>
-Tokens Tracked: <b>{tracked_count}</b>
-Multi-Buys: <b>{multi_buy_count}</b>
-Positions Monitored: <b>{monitored_positions}</b>
-Filtered: <b>{bot_state.get('tokens_filtered', 0)}</b>
-Uptime: <b>{uptime_hours:.1f}h</b>
+I monitor elite crypto whales & KOLs across Solana and Base chains.
+Get instant alerts when they buy tokens!
 
-━━━━━━━━━━━━━━━━━━━━
-⚙️ <b>FILTERS</b>
-━━━━━━━━━━━━━━━━━━━━
-MC: <b>${bot_state['filters']['mc_min']:,} - ${bot_state['filters']['mc_max']:,}</b>
-Liq: <b>${bot_state['filters']['liq_min']:,}+</b>
+🌟 NEW: Now tracking crypto KOL wallets!
 
-🔔 Status: <b>{'⏸️ PAUSED' if bot_state.get('paused') else '✅ ACTIVE'}</b>
+📱 Quick Commands:
+/help - All commands
+/stats - Bot statistics  
+/kols - View tracked KOLs
+/tracked - Active tokens
+/guide - Complete guide
+
+Let's catch some whales! 🚀
 """
+    return msg
 
-# ============================================================
-# COMMAND: /topwhales
-# ============================================================
+def cmd_help(chat_id):
+    """Show all commands"""
+    msg = """
+📱 AVAILABLE COMMANDS
 
-def get_top_whales():
-    """Get top 15 whales"""
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    tier_1 = [w for w in whales if w.get('tier') == 1]
-    sorted_whales = sorted(tier_1, key=lambda x: x.get('win_count', 0), reverse=True)[:15]
-    
-    message = "🏆 <b>TOP 15 ELITE WHALES</b>\n\n"
-    
-    for i, whale in enumerate(sorted_whales, 1):
-        chain_icon = "🟣" if whale['chain'] == 'solana' else "🔵"
-        tier_emoji = TIER_CONFIG.get(whale.get('tier', 1), {}).get('emoji', '🔥')
-        message += f"{i}. {chain_icon}{tier_emoji} <code>{whale['address'][:16]}...</code>\n   Wins: <b>{whale.get('win_count', 0)}</b> | WR: <b>{whale.get('win_rate', 0):.1f}%</b>\n"
-        if i % 5 == 0:
-            message += "\n"
-    
-    return message
+📊 STATISTICS:
+/stats - Overall bot statistics
+/kols - View all tracked KOLs
+/tiers - Performance by tier
+/tier1 to /tier4 - View specific tier
 
-# ============================================================
-# COMMAND: /lastbuys
-# ============================================================
+🎯 TRACKING:
+/tracked - Currently tracked tokens
+/topwhales - Top 15 performers
+/performance - Whale leaderboard
+/multibuys - Multi-whale signals
 
-def get_last_buys():
-    """Get last 15 buys"""
-    last_buys = bot_state.get('last_buys', [])
-    
-    if not last_buys:
-        return "📭 No recent buys detected yet."
-    
-    message = "🔥 <b>LAST 15 QUALITY BUYS</b>\n\n"
-    
-    for i, buy in enumerate(reversed(last_buys[-15:]), 1):
-        tier = buy.get('tier', 1)
-        tier_emoji = TIER_CONFIG.get(tier, {}).get('emoji', '🔥')
-        message += f"{i}. 💎 <b>{buy['symbol']}</b> {tier_emoji}\n   MC: ${buy['mc']:,.0f} | Tier {tier}\n   {buy['timestamp']} | <code>{buy['token'][:16]}...</code>\n\n"
-    
-    return message
+🔔 INFO:
+/promotions - Recent tier changes
+/guide - Detailed user guide
+/help - This message
 
-# ============================================================
-# COMMAND: /tracked
-# ============================================================
-
-def get_tracked_tokens():
-    """Get tracked tokens"""
-    tracked = bot_state.get('tracked_tokens', {})
-    
-    if not tracked:
-        return "📭 No tokens being tracked yet."
-    
-    sorted_tokens = sorted(
-        tracked.items(),
-        key=lambda x: x[1].get('current_gain', 0),
-        reverse=True
-    )
-    
-    message = "📊 <b>TRACKED TOKENS (Top 20)</b>\n\n"
-    
-    for i, (token_addr, data) in enumerate(sorted_tokens[:20], 1):
-        gain = data.get('current_gain', 0)
-        max_gain = data.get('max_gain', 0)
-        whale_count = len(data.get('whales_bought', []))
-        sells_count = len(data.get('sells_detected', []))
-        
-        gain_icon = "🟢" if gain > 0 else "🔴" if gain < -10 else "⚪"
-        multi_icon = "🔥" if whale_count >= 3 else "⭐" if whale_count >= 2 else ""
-        sell_icon = "🚨" if sells_count > 0 else ""
-        
-        message += f"{i}. {gain_icon} <b>{data['symbol']}</b> {multi_icon}{sell_icon}\n"
-        message += f"   Gain: <b>{gain:+.1f}%</b> | ATH: <b>{max_gain:.1f}%</b>\n"
-        message += f"   Whales: <b>{whale_count}</b> | Exits: <b>{sells_count}</b>\n\n"
-    
-    return message
-
-# ============================================================
-# COMMAND: /multibuys
-# ============================================================
-
-def get_multi_buys():
-    """Get multi-buy alerts"""
-    multi_buys = bot_state.get('multi_buys', {})
-    tracked = bot_state.get('tracked_tokens', {})
-    
-    if not multi_buys:
-        return "📭 No multi-buy events detected yet."
-    
-    message = "🔥 <b>MULTI-BUY ALERTS</b>\n\n"
-    
-    for token_addr, multi_data in list(multi_buys.items())[:15]:
-        if token_addr in tracked:
-            data = tracked[token_addr]
-            whale_count = len(data.get('whales_bought', []))
-            gain = data.get('current_gain', 0)
-            sells = len(data.get('sells_detected', []))
-            
-            message += f"🔥 <b>{data['symbol']}</b>\n"
-            message += f"   Whales: <b>{whale_count}</b> | Gain: <b>{gain:+.1f}%</b> | Exits: {sells}\n"
-            message += f"   <code>{token_addr[:16]}...</code>\n\n"
-    
-    return message
-
-# ============================================================
-# COMMAND: /performance
-# ============================================================
-
-def get_whale_performance_report():
-    """Get whale performance leaderboard"""
-    perf = bot_state.get('whale_performance', {})
-    
-    if not perf:
-        return "📭 No performance data yet."
-    
-    whale_stats = []
-    for whale_addr, stats in perf.items():
-        if stats['tokens_tracked'] >= 3:
-            success_rate = (stats['successful_calls'] / stats['tokens_tracked']) * 100
-            avg_gain = stats['total_gain'] / stats['tokens_tracked']
-            
-            whale_stats.append({
-                'address': whale_addr,
-                'success_rate': success_rate,
-                'avg_gain': avg_gain,
-                'best_call': stats['best_call'],
-                'tokens_tracked': stats['tokens_tracked']
-            })
-    
-    if not whale_stats:
-        return "📊 Need more data (min 3 calls per whale)"
-    
-    whale_stats.sort(key=lambda x: x['success_rate'], reverse=True)
-    
-    message = "🏆 <b>TOP PERFORMING WHALES</b>\n\n"
-    
-    for i, stats in enumerate(whale_stats[:10], 1):
-        message += f"{i}. <code>{stats['address'][:16]}...</code>\n"
-        message += f"   Success: <b>{stats['success_rate']:.0f}%</b> | Avg: <b>{stats['avg_gain']:+.1f}%</b>\n"
-        message += f"   Best: <b>{stats['best_call']:.0f}%</b> | Calls: {stats['tokens_tracked']}\n\n"
-    
-    return message
-
-# ============================================================
-# COMMAND: /filters
-# ============================================================
-
-def get_filters_info():
-    """Get current filter settings"""
-    filters = bot_state['filters']
-    
-    return f"""
-⚙️ <b>CURRENT FILTER SETTINGS</b>
-
-━━━━━━━━━━━━━━━━━━━━
-💰 Market Cap:
-   Min: <b>${filters['mc_min']:,}</b>
-   Max: <b>${filters['mc_max']:,}</b>
-
-💧 Liquidity:
-   Min: <b>${filters['liq_min']:,}</b>
-
-📊 Ratios:
-   Max Vol/Liq: <b>{filters['vol_liq_max']}x</b>
-   Max Buy/Sell: <b>{filters['buy_sell_max']}:1</b>
-
-⏰ Token Age:
-   Min: <b>{filters['min_age_hours']}h</b>
-
-━━━━━━━━━━━━━━━━━━━━
-<b>🔒 Admin Only:</b> Use /setfilter to change
+💡 Tip: Use /kols to see all crypto KOLs we're tracking!
 """
+    return msg
 
-# ============================================================
-# TIER SYSTEM COMMANDS
-# ============================================================
+def cmd_stats(chat_id, bot_state):
+    """Overall bot statistics with KOL breakdown"""
+    try:
+        # Load whale data
+        with open('whales_tiered_final.json', 'r') as f:
+            whales = json.load(f)
 
-def get_tier_stats():
-    """Get statistics for each tier"""
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    tier_1 = [w for w in whales if w.get('tier') == 1]
-    tier_2 = [w for w in whales if w.get('tier') == 2]
-    tier_3 = [w for w in whales if w.get('tier') == 3]
-    tier_4 = [w for w in whales if w.get('tier') == 4]
-    
-    # Get performance data
-    perf = bot_state.get('whale_performance', {})
-    
-    def get_tier_performance(tier_whales):
-        addresses = [w['address'] for w in tier_whales]
-        tier_perf = [perf[addr] for addr in addresses if addr in perf]
-        
-        if not tier_perf:
-            return {'avg_gain': 0, 'success_rate': 0, 'total_calls': 0}
-        
-        total_gain = sum(p['total_gain'] for p in tier_perf)
-        total_calls = sum(p['tokens_tracked'] for p in tier_perf)
-        successful_calls = sum(p['successful_calls'] for p in tier_perf)
-        
-        avg_gain = total_gain / total_calls if total_calls > 0 else 0
-        success_rate = (successful_calls / total_calls * 100) if total_calls > 0 else 0
-        
-        return {
-            'avg_gain': avg_gain,
-            'success_rate': success_rate,
-            'total_calls': total_calls
+        # Count totals
+        total_whales = len(whales)
+
+        # Separate KOLs from regular whales
+        kols = [w for w in whales if w.get('type') == 'kol']
+        regular_whales = [w for w in whales if w.get('type') != 'kol']
+
+        # Count by chain
+        sol_whales = len([w for w in whales if w.get('chain') == 'sol'])
+        base_whales = len([w for w in whales if w.get('chain') == 'base'])
+
+        sol_kols = len([k for k in kols if k.get('chain') == 'sol'])
+        base_kols = len([k for k in kols if k.get('chain') == 'base'])
+
+        # Count by tier
+        tier_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+        for whale in whales:
+            tier = whale.get('tier', 3)
+            tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
+        # Tracked tokens
+        tracked_tokens = bot_state.get('tracked_tokens', {})
+        active_tokens = len([t for t in tracked_tokens.values() if t.get('active', True)])
+
+        msg = f"""
+📊 BOT STATISTICS
+
+🎯 Total Wallets Monitored: {total_whales:,}
+🌟 KOLs: {len(kols)}
+🐋 Regular Whales: {len(regular_whales)}
+
+🔗 By Chain:
+  Solana: {sol_whales} ({sol_kols} KOLs)
+  Base: {base_whales} ({base_kols} KOLs)
+
+🏆 By Tier:
+  🔥 Tier 1 (Elite): {tier_counts[1]} whales
+  ⭐ Tier 2 (Active): {tier_counts[2]} whales
+  📊 Tier 3 (Semi): {tier_counts[3]} whales
+  💤 Tier 4 (Dormant): {tier_counts[4]} whales
+
+📈 Currently Tracking: {active_tokens} tokens
+
+💡 Use /kols to see all KOLs!
+"""
+        return msg
+
+    except Exception as e:
+        return f"❌ Error loading stats: {str(e)}"
+
+def cmd_kols(chat_id, bot_state):
+    """Display all tracked KOLs"""
+    try:
+        # Load whale data
+        with open('whales_tiered_final.json', 'r') as f:
+            whales = json.load(f)
+
+        # Filter KOLs only
+        kols = [w for w in whales if w.get('type') == 'kol']
+
+        if not kols:
+            return "⚠️ No KOLs found in tracker. Run kol_scraper.py to add KOLs!"
+
+        # Sort by tier, then by chain
+        kols.sort(key=lambda x: (x.get('tier', 4), x.get('chain', 'zzz')))
+
+        # Group by tier
+        tier_groups = {1: [], 2: [], 3: [], 4: []}
+        for kol in kols:
+            tier = kol.get('tier', 3)
+            tier_groups[tier].append(kol)
+
+        msg = f"🌟 CRYPTO KOL TRACKER
+
+"
+        msg += f"📊 Total KOLs: {len(kols)}
+
+"
+
+        tier_emojis = {1: '🔥', 2: '⭐', 3: '📊', 4: '💤'}
+        tier_names = {
+            1: 'TIER 1 - ELITE (30s checks)',
+            2: 'TIER 2 - ACTIVE (3m checks)',
+            3: 'TIER 3 - SEMI-ACTIVE (10m checks)',
+            4: 'TIER 4 - DORMANT (24h checks)'
         }
-    
-    t1_perf = get_tier_performance(tier_1)
-    t2_perf = get_tier_performance(tier_2)
-    t3_perf = get_tier_performance(tier_3)
-    t4_perf = get_tier_performance(tier_4)
-    
-    return f"""
-📊 <b>TIERED SYSTEM STATISTICS</b>
 
-━━━━━━━━━━━━━━━━━━━━
-🔥 <b>TIER 1 - ELITE</b>
-━━━━━━━━━━━━━━━━━━━━
-Whales: <b>{len(tier_1)}</b>
-Check Interval: <b>30 seconds</b>
-Avg Gain: <b>{t1_perf['avg_gain']:+.1f}%</b>
-Success Rate: <b>{t1_perf['success_rate']:.1f}%</b>
-Total Calls: <b>{t1_perf['total_calls']}</b>
+        for tier in [1, 2, 3, 4]:
+            tier_kols = tier_groups[tier]
+            if not tier_kols:
+                continue
 
-━━━━━━━━━━━━━━━━━━━━
-⭐ <b>TIER 2 - ACTIVE</b>
-━━━━━━━━━━━━━━━━━━━━
-Whales: <b>{len(tier_2)}</b>
-Check Interval: <b>3 minutes</b>
-Avg Gain: <b>{t2_perf['avg_gain']:+.1f}%</b>
-Success Rate: <b>{t2_perf['success_rate']:.1f}%</b>
-Total Calls: <b>{t2_perf['total_calls']}</b>
+            msg += f"{tier_emojis[tier]} {tier_names[tier]}
+"
+            msg += f"━━━━━━━━━━━━━━━━━━━━
+"
 
-━━━━━━━━━━━━━━━━━━━━
-📊 <b>TIER 3 - SEMI-ACTIVE</b>
-━━━━━━━━━━━━━━━━━━━━
-Whales: <b>{len(tier_3)}</b>
-Check Interval: <b>10 minutes</b>
-Avg Gain: <b>{t3_perf['avg_gain']:+.1f}%</b>
-Success Rate: <b>{t3_perf['success_rate']:.1f}%</b>
-Total Calls: <b>{t3_perf['total_calls']}</b>
+            for i, kol in enumerate(tier_kols, 1):
+                name = kol.get('name', 'Unknown')
+                twitter = kol.get('twitter', 'N/A')
+                chain = kol.get('chain', '?').upper()
+                winrate = kol.get('win_rate', 0)
 
-━━━━━━━━━━━━━━━━━━━━
-💤 <b>TIER 4 - DORMANT</b>
-━━━━━━━━━━━━━━━━━━━━
-Whales: <b>{len(tier_4)}</b>
-Check Interval: <b>24 hours</b>
-Avg Gain: <b>{t4_perf['avg_gain']:+.1f}%</b>
-Success Rate: <b>{t4_perf['success_rate']:.1f}%</b>
-Total Calls: <b>{t4_perf['total_calls']}</b>
+                # Truncate name if too long
+                if len(name) > 20:
+                    name = name[:17] + "..."
 
-━━━━━━━━━━━━━━━━━━━━
-🎯 <b>TOTAL TRACKED: {len(whales)}</b>
-"""
+                msg += f"{i}. {name}
+"
+                msg += f"   🐦 {twitter} | {chain}"
 
-def get_tier_whales(tier_number):
-    """Get whales in specific tier"""
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    tier_whales = [w for w in whales if w.get('tier') == tier_number]
-    
-    if not tier_whales:
-        return f"📭 No whales in Tier {tier_number}"
-    
-    tier_info = TIER_CONFIG[tier_number]
-    
-    message = f"""
-{tier_info['emoji']} <b>TIER {tier_number} - {tier_info['name'].upper()}</b>
+                if winrate > 0:
+                    msg += f" | {winrate:.0f}% WR"
 
-Check Interval: <b>{tier_info['check_interval']}s</b>
-Priority: <b>{tier_info['alert_priority']}</b>
-Whales: <b>{len(tier_whales)}</b>
+                msg += "
+"
 
-━━━━━━━━━━━━━━━━━━━━
-<b>TOP 15 WHALES:</b>
-━━━━━━━━━━━━━━━━━━━━
+                # Limit to 10 per tier to avoid message length issues
+                if i >= 10:
+                    remaining = len(tier_kols) - 10
+                    if remaining > 0:
+                        msg += f"   ... and {remaining} more
+"
+                    break
 
-"""
-    
-    sorted_whales = sorted(tier_whales, key=lambda x: x.get('win_rate', 0), reverse=True)[:15]
-    
-    for i, whale in enumerate(sorted_whales, 1):
-        chain_icon = "🟣" if whale['chain'] == 'solana' else "🔵"
-        message += f"{i}. {chain_icon} <code>{whale['address'][:16]}...</code>\n"
-        message += f"   WR: <b>{whale.get('win_rate', 0):.1f}%</b> | Wins: {whale.get('win_count', 0)}\n"
-        if i % 5 == 0:
-            message += "\n"
-    
-    return message
+            msg += "
+"
 
-def get_recent_promotions():
+        msg += "💡 Use /tier1 through /tier4 for full lists!"
+
+        return msg
+
+    except Exception as e:
+        return f"❌ Error loading KOLs: {str(e)}"
+
+def cmd_tier_detail(chat_id, bot_state, tier_num):
+    """Show detailed view of specific tier with KOL indicators"""
+    try:
+        with open('whales_tiered_final.json', 'r') as f:
+            whales = json.load(f)
+
+        tier_whales = [w for w in whales if w.get('tier') == tier_num]
+
+        if not tier_whales:
+            return f"⚠️ No whales in Tier {tier_num}"
+
+        # Separate KOLs and regular whales
+        kols = [w for w in tier_whales if w.get('type') == 'kol']
+        regular = [w for w in tier_whales if w.get('type') != 'kol']
+
+        tier_emojis = {1: '🔥', 2: '⭐', 3: '📊', 4: '💤'}
+        tier_names = {
+            1: 'TIER 1 - ELITE WHALES (30s checks)',
+            2: 'TIER 2 - ACTIVE WHALES (3m checks)',
+            3: 'TIER 3 - SEMI-ACTIVE WHALES (10m checks)',
+            4: 'TIER 4 - DORMANT WHALES (24h checks)'
+        }
+
+        msg = f"{tier_emojis[tier_num]} {tier_names[tier_num]}
+
+"
+        msg += f"📊 Total: {len(tier_whales)} wallets
+"
+        msg += f"🌟 KOLs: {len(kols)}
+"
+        msg += f"🐋 Regular Whales: {len(regular)}
+
+"
+
+        # Show KOLs first
+        if kols:
+            msg += "🌟 KOLS:
+"
+            msg += "━━━━━━━━━━━━━━━━━━━━
+"
+
+            for i, kol in enumerate(kols[:15], 1):
+                name = kol.get('name', 'Unknown')
+                twitter = kol.get('twitter', 'N/A')
+                chain = kol.get('chain', '?').upper()
+                winrate = kol.get('win_rate', 0)
+
+                if len(name) > 15:
+                    name = name[:12] + "..."
+
+                msg += f"{i}. {name} | {chain}
+"
+                msg += f"   🐦 {twitter}"
+
+                if winrate > 0:
+                    msg += f" | {winrate:.0f}% WR"
+
+                msg += "
+"
+
+            if len(kols) > 15:
+                msg += f"
+... and {len(kols) - 15} more KOLs
+"
+
+            msg += "
+"
+
+        # Show regular whales
+        if regular:
+            msg += "🐋 REGULAR WHALES:
+"
+            msg += "━━━━━━━━━━━━━━━━━━━━
+"
+
+            for i, whale in enumerate(regular[:10], 1):
+                addr = whale.get('address', 'Unknown')
+                chain = whale.get('chain', '?').upper()
+                winrate = whale.get('win_rate', 0)
+
+                short_addr = f"{addr[:6]}...{addr[-4:]}"
+                msg += f"{i}. {short_addr} | {chain}"
+
+                if winrate > 0:
+                    msg += f" | {winrate:.0f}% WR"
+
+                msg += "
+"
+
+            if len(regular) > 10:
+                msg += f"
+... and {len(regular) - 10} more whales
+"
+
+        return msg
+
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+
+def cmd_tiers(chat_id, bot_state):
+    """Show tier statistics including KOL breakdown"""
+    try:
+        with open('whales_tiered_final.json', 'r') as f:
+            whales = json.load(f)
+
+        msg = "🏆 TIER STATISTICS
+
+"
+
+        for tier in [1, 2, 3, 4]:
+            tier_whales = [w for w in whales if w.get('tier') == tier]
+            tier_kols = [w for w in tier_whales if w.get('type') == 'kol']
+
+            tier_emojis = {1: '🔥', 2: '⭐', 3: '📊', 4: '💤'}
+            tier_names = {1: 'Elite', 2: 'Active', 3: 'Semi-Active', 4: 'Dormant'}
+            check_intervals = {1: '30s', 2: '3m', 3: '10m', 4: '24h'}
+
+            msg += f"{tier_emojis[tier]} TIER {tier} - {tier_names[tier]}
+"
+            msg += f"Check Interval: {check_intervals[tier]}
+"
+            msg += f"Total: {len(tier_whales)} wallets
+"
+            msg += f"  🌟 KOLs: {len(tier_kols)}
+"
+            msg += f"  🐋 Whales: {len(tier_whales) - len(tier_kols)}
+"
+
+            # Calculate performance if available
+            total_calls = sum(w.get('total_calls', 0) for w in tier_whales)
+            if total_calls > 0:
+                wins = sum(w.get('win_count', 0) for w in tier_whales)
+                winrate = (wins / total_calls * 100) if total_calls > 0 else 0
+                msg += f"Performance: {winrate:.1f}% WR | {total_calls} calls
+"
+
+            msg += "
+"
+
+        msg += "💡 Use /tier1 to /tier4 for detailed lists!"
+
+        return msg
+
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+
+def cmd_tracked(chat_id, bot_state):
+    """Currently tracked tokens"""
+    tracked = bot_state.get('tracked_tokens', {})
+    active = {k: v for k, v in tracked.items() if v.get('active', True)}
+
+    if not active:
+        return "📊 No tokens currently being tracked."
+
+    msg = f"📊 TRACKED TOKENS ({len(active)})
+
+"
+
+    sorted_tokens = sorted(active.items(), 
+                          key=lambda x: x[1].get('current_gain', 0), 
+                          reverse=True)[:15]
+
+    for i, (addr, data) in enumerate(sorted_tokens, 1):
+        symbol = data.get('symbol', 'UNKNOWN')
+        gain = data.get('current_gain', 0)
+        whale_count = len(data.get('whale_buyers', []))
+
+        # Check if any buyers are KOLs
+        kol_buyers = [w for w in data.get('whale_buyers', []) if w.get('is_kol', False)]
+
+        gain_emoji = "📈" if gain > 0 else "📉"
+        msg += f"{i}. {symbol} {gain_emoji}
+"
+        msg += f"   Gain: {gain:+.1f}%
+"
+        msg += f"   Whales: {whale_count}"
+
+        if kol_buyers:
+            msg += f" ({len(kol_buyers)} KOLs 🌟)"
+
+        msg += f"
+   {addr[:8]}...
+
+"
+
+    return msg
+
+def cmd_topwhales(chat_id, bot_state):
+    """Top 15 performing whales including KOLs"""
+    try:
+        with open('whales_tiered_final.json', 'r') as f:
+            whales = json.load(f)
+
+        # Filter whales with calls
+        active_whales = [w for w in whales if w.get('total_calls', 0) > 0]
+
+        if not active_whales:
+            return "📊 No whale performance data yet. Wait for some trades!"
+
+        # Sort by win rate then total gain
+        sorted_whales = sorted(active_whales, 
+                             key=lambda x: (x.get('win_rate', 0), x.get('total_gain', 0)), 
+                             reverse=True)[:15]
+
+        msg = "🏆 TOP 15 PERFORMERS
+
+"
+
+        for i, whale in enumerate(sorted_whales, 1):
+            is_kol = whale.get('type') == 'kol'
+
+            if is_kol:
+                name = whale.get('name', 'Unknown KOL')
+                twitter = whale.get('twitter', 'N/A')
+                identifier = f"🌟 {name} ({twitter})"
+            else:
+                addr = whale.get('address', 'Unknown')
+                identifier = f"🐋 {addr[:6]}...{addr[-4:]}"
+
+            winrate = whale.get('win_rate', 0)
+            total_gain = whale.get('total_gain', 0)
+            total_calls = whale.get('total_calls', 0)
+            chain = whale.get('chain', '?').upper()
+
+            msg += f"{i}. {identifier}
+"
+            msg += f"   {chain} | {winrate:.0f}% WR | {total_calls} calls
+"
+            msg += f"   Total Gain: {total_gain:+.1f}%
+
+"
+
+        return msg
+
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+
+def cmd_performance(chat_id, bot_state):
+    """Alias for topwhales"""
+    return cmd_topwhales(chat_id, bot_state)
+
+def cmd_multibuys(chat_id, bot_state):
+    """Show tokens with multiple whale buyers"""
+    tracked = bot_state.get('tracked_tokens', {})
+
+    multibuys = {k: v for k, v in tracked.items() 
+                if len(v.get('whale_buyers', [])) >= 2 and v.get('active', True)}
+
+    if not multibuys:
+        return "📊 No multi-buy signals currently."
+
+    sorted_multibuys = sorted(multibuys.items(), 
+                            key=lambda x: len(x[1].get('whale_buyers', [])), 
+                            reverse=True)[:10]
+
+    msg = "🚨 MULTI-BUY SIGNALS
+
+"
+
+    for i, (addr, data) in enumerate(sorted_multibuys, 1):
+        symbol = data.get('symbol', 'UNKNOWN')
+        whale_count = len(data.get('whale_buyers', []))
+        gain = data.get('current_gain', 0)
+
+        # Count KOL buyers
+        kol_count = sum(1 for w in data.get('whale_buyers', []) if w.get('is_kol', False))
+
+        msg += f"{i}. {symbol}
+"
+        msg += f"   {whale_count} whales bought"
+
+        if kol_count > 0:
+            msg += f" ({kol_count} KOLs 🌟)"
+
+        msg += f"
+   Current: {gain:+.1f}%
+
+"
+
+    return msg
+
+def cmd_promotions(chat_id, bot_state):
     """Show recent tier changes"""
     promotions = bot_state.get('tier_changes', [])
-    
+
     if not promotions:
-        return "📭 No tier changes yet."
-    
-    message = "📈 <b>RECENT TIER CHANGES</b>\n\n"
-    
-    for change in reversed(promotions[-15:]):
-        direction = "⬆️" if change['new_tier'] < change['old_tier'] else "⬇️"
-        message += f"{direction} <code>{change['whale'][:16]}...</code>\n"
-        message += f"   Tier {change['old_tier']} → Tier {change['new_tier']}\n"
-        message += f"   Reason: {change['reason']}\n"
-        message += f"   {change['timestamp']}\n\n"
-    
-    return message
+        return "📊 No tier changes yet."
 
-# ============================================================
-# COMMAND: /help
-# ============================================================
+    recent = promotions[-10:]
+    msg = "📈 RECENT TIER CHANGES
 
-def get_help():
-    """Get help message"""
-    return """
-🤖 <b>WHALE TRACKER BOT V4 - TIERED</b>
+"
 
-━━━━━━━━━━━━━━━━━━━━
-📊 <b>MONITORING</b>
-━━━━━━━━━━━━━━━━━━━━
+    for change in reversed(recent):
+        whale_addr = change.get('whale', 'Unknown')
+        old_tier = change.get('old_tier', 0)
+        new_tier = change.get('new_tier', 0)
+        reason = change.get('reason', 'N/A')
+
+        direction = "📈 PROMOTED" if new_tier < old_tier else "📉 DEMOTED"
+        short_addr = f"{whale_addr[:6]}...{whale_addr[-4:]}"
+
+        msg += f"{direction}
+"
+        msg += f"{short_addr}
+"
+        msg += f"Tier {old_tier} → Tier {new_tier}
+"
+        msg += f"Reason: {reason}
+
+"
+
+    return msg
+
+def cmd_guide(chat_id):
+    """Comprehensive user guide"""
+    msg = """
+📚 WHALE TRACKER BOT - COMPLETE GUIDE
+
+🎯 WHAT THIS BOT DOES:
+Monitors 2,000+ elite whale & KOL wallets across Solana and Base chains. Alerts you instantly when they buy tokens!
+
+🌟 KOL TRACKING (NEW!):
+We now track crypto Key Opinion Leaders (influencers) who often buy BEFORE tweeting. Get 5-30 min edge!
+
+🏆 4-TIER SYSTEM:
+🔥 Tier 1 (Elite) - 30s checks - Top performers
+⭐ Tier 2 (Active) - 3m checks - Good performers  
+📊 Tier 3 (Semi) - 10m checks - Decent performers
+💤 Tier 4 (Dormant) - 24h checks - Inactive whales
+
+📱 KEY COMMANDS:
 /stats - Bot statistics
-/topwhales - Top 15 whales
-/lastbuys - Last 15 buys
-/tracked - Tracked tokens
-/multibuys - Multi-whale buys
-/performance - Whale leaderboard
+/kols - View all tracked KOLs
+/tracked - Active token tracking
+/topwhales - Performance leaderboard
+/multibuys - High conviction signals
+/tiers - Tier performance stats
 
-━━━━━━━━━━━━━━━━━━━━
-🎯 <b>TIER SYSTEM</b>
-━━━━━━━━━━━━━━━━━━━━
-/tiers - Tier statistics
-/tier1 - Elite whales (30s)
-/tier2 - Active whales (3m)
-/tier3 - Semi-active (10m)
-/tier4 - Dormant (24h)
-/promotions - Recent tier changes
+🚨 ALERT TYPES:
+1. 🐋 Whale Buy - Regular whale buys token
+2. 🌟 KOL Alert - Crypto influencer buys (with Twitter handle!)
+3. 🚨 Multi-Buy - 2+ whales buy same token (high conviction)
+4. 💰 Sell Alert - Whale exits 30%+ of position
+5. 📊 Price Milestones - +10%, +25%, +50%, +100%, +200%
+6. 💤 Wake-Up - Dormant whale suddenly trades
 
-━━━━━━━━━━━━━━━━━━━━
-📖 <b>DOCUMENTATION</b>
-━━━━━━━━━━━━━━━━━━━━
-/guide - Full user guide ⭐
-/help - This help message
+💡 HOW TO USE:
+1. Wait for alerts in Telegram
+2. Check token metrics (MC, liquidity, volume)
+3. Research on Dexscreener
+4. Decide if you want to buy
+5. Set take-profit and stop-loss
+6. Track performance with /tracked
 
-━━━━━━━━━━━━━━━━━━━━
-🔒 <b>ADMIN ONLY</b>
-━━━━━━━━━━━━━━━━━━━━
-/addwallet address chain
-/removewallet address
-/setfilter setting value
-/pause | /resume
-/filters
+⚠️ IMPORTANT:
+- Whale alerts = research starting point
+- Always DYOR (Do Your Own Research)
+- Not financial advice
+- Manage risk appropriately
 
-━━━━━━━━━━━━━━━━━━━━
-<b>Features:</b>
-✅ 4-Tier monitoring system
-✅ Auto-promotion/demotion
-✅ Multi-buy detection
-✅ Whale exit alerts
-✅ Performance tracking
+🔥 KOL ADVANTAGE:
+KOLs often buy 5-30 mins BEFORE tweeting. You get alerted when they buy, giving you early entry before their followers pump the token!
+
+📊 PERFORMANCE TRACKING:
+Bot automatically tracks whale performance and adjusts tiers hourly based on win rates and profits.
+
+Need help? Ask in the group!
 """
-
-# ============================================================
-# COMMAND: /guide
-# ============================================================
-
-def get_guide():
-    """Get comprehensive user guide"""
-    return """
-🐋 <b>WHALE TRACKER BOT V4 - USER GUIDE</b>
-
-━━━━━━━━━━━━━━━━━━━━
-📋 <b>AVAILABLE COMMANDS</b>
-━━━━━━━━━━━━━━━━━━━━
-
-<b>📊 MONITORING COMMANDS</b>
-
-/stats - View current monitoring statistics
-• Total whales tracked per tier
-• Active detectors status  
-• System uptime
-
-/topwhales - Top 15 elite whales
-• Sorted by win count
-• Win rate percentages
-
-/lastbuys - Last 15 quality buys
-• Recent whale purchases
-• Market cap info
-
-/tracked - Tracked tokens (Top 20)
-• Current gains
-• All-time highs
-• Multi-buy indicators
-
-/multibuys - Multi-whale buy events
-• Tokens bought by 2+ whales
-• Highest conviction plays
-
-/performance - Whale leaderboard
-• Success rates
-• Average gains
-• Best calls
-
-<b>🎯 TIER SYSTEM</b>
-
-/tiers - Complete tier statistics
-• Performance by tier
-• Check intervals
-
-/tier1 - Elite whales (30s checks)
-/tier2 - Active whales (3m checks)
-/tier3 - Semi-active (10m checks)
-/tier4 - Dormant (24h checks)
-
-/promotions - Recent tier changes
-• See who got promoted/demoted
-• Performance reasons
-
-━━━━━━━━━━━━━━━━━━━━
-🔔 <b>ALERT TYPES</b>
-━━━━━━━━━━━━━━━━━━━━
-
-<b>🚨 NEW POSITION ALERTS</b>
-When a whale buys a new token:
-• Token name & symbol
-• Tier & priority level
-• Market cap & liquidity
-• Buy amount in USD
-• Whale win rate
-• Multi-buy detection (2+ whales)
-• Wake-up alerts for dormant whales
-
-<b>💰 WHALE EXIT ALERTS</b>
-When whales sell 30%+ of position:
-• Sold percentage
-• Entry vs exit price
-• Profit/Loss calculation
-• Time held
-
-<b>📈 PRICE MILESTONE ALERTS</b>
-Automatic updates at:
-• +10% | +25% | +50%
-• +100% | +200%
-
-━━━━━━━━━━━━━━━━━━━━
-⚙️ <b>TIER SYSTEM EXPLAINED</b>
-━━━━━━━━━━━━━━━━━━━━
-
-<b>🔥 Tier 1 - Elite Active Whales</b>
-• 60%+ success rate
-• 50%+ average gain
-• 10+ successful calls
-• Checked every 30 seconds
-• REAL-TIME monitoring
-
-<b>⭐ Tier 2 - Active Whales</b>
-• 50%+ success rate
-• 30%+ average gain
-• 5+ successful calls
-• Checked every 3 minutes
-
-<b>📊 Tier 3 - Semi-Active Whales</b>
-• 40%+ success rate
-• 10%+ average gain
-• Background monitoring
-• Checked every 10 minutes
-
-<b>💤 Tier 4 - Dormant Whales</b>
-• Inactive 90+ days
-• Checked every 24 hours
-• Wake-up alerts when they trade
-• Often signals insider info
-
-<b>🔄 Auto-Promotion System:</b>
-• Bot evaluates performance hourly
-• Whales automatically move tiers
-• Based on success rate & avg gain
-• You get notified of changes
-
-━━━━━━━━━━━━━━━━━━━━
-🎯 <b>HOW IT WORKS</b>
-━━━━━━━━━━━━━━━━━━━━
-
-<b>1. BASELINE SCAN</b>
-Bot snapshots all whale positions
-
-<b>2. TIERED MONITORING</b>
-Continuous checks based on tier:
-• Elite whales: Real-time (30s)
-• Active whales: Every 3m
-• Semi-active: Every 10m
-• Dormant: Daily checks
-
-<b>3. INSTANT ALERTS</b>
-Filtered quality plays sent with:
-• Full token metrics
-• Whale tier & priority
-• DexScreener link
-
-<b>4. PERFORMANCE TRACKING</b>
-Bot monitors and reports:
-• Price milestones
-• Whale exits
-• Success rates
-• Tier promotions
-
-━━━━━━━━━━━━━━━━━━━━
-💡 <b>PRO TIPS</b>
-━━━━━━━━━━━━━━━━━━━━
-
-<b>✅ Do This:</b>
-• Prioritize Tier 1 alerts
-• Check /tiers weekly
-• Watch for multi-buy + Tier 1
-• Review /performance regularly
-• Act on wake-up alerts fast
-• Set your own stop losses
-
-<b>⚠️ Avoid This:</b>
-• Ignoring tier levels
-• FOMO on Tier 4 alerts
-• Missing exit signals
-• Over-leveraging
-
-<b>🔥 Best Signals:</b>
-• Tier 1 + Multi-buy = 🔥🔥🔥
-• Dormant whale wake-up = 🚨
-• 3+ whales same token = 💎
-
-━━━━━━━━━━━━━━━━━━━━
-🔐 <b>ADMIN COMMANDS</b>
-━━━━━━━━━━━━━━━━━━━━
-
-/addwallet address chain
-• Add new whale to track
-
-/removewallet address
-• Remove whale from tracking
-
-/setfilter setting value
-• Adjust filter parameters
-
-/pause | /resume
-• Pause/resume monitoring
-
-/filters
-• View all filter settings
-
-━━━━━━━━━━━━━━━━━━━━
-📊 <b>KEY FEATURES</b>
-━━━━━━━━━━━━━━━━━━━━
-
-✅ 4-Tier monitoring system
-✅ Auto-promotion/demotion
-✅ Multi-buy detection
-✅ TRUE whale exit alerts  
-✅ Performance tracking
-✅ Wake-up alerts
-✅ Price follow-ups
-✅ Quality filtering
-✅ 24/7 monitoring
-
-━━━━━━━━━━━━━━━━━━━━
-🚀 <b>Happy Whale Hunting!</b>
-
-Bot running on Railway ☁️
-Tier-based intelligent monitoring 🎯
-Auto-optimizing performance 🔄
-"""
-
-# ============================================================
-# ADMIN COMMANDS
-# ============================================================
-
-def add_wallet(address, chain, user_id):
-    """Add wallet to tracking (admin only)"""
-    if not is_admin(user_id):
-        return "🔒 <b>ACCESS DENIED</b>"
-    
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    if any(w['address'] == address for w in whales):
-        return f"❌ Wallet already tracked"
-    
-    new_whale = {
-        'address': address,
-        'chain': chain.lower(),
-        'tier': 3,  # Start at tier 3
-        'win_count': 0,
-        'win_rate': 0,
-        'is_active': True,
-        'source': 'manual_add',
-        'added_date': datetime.now().strftime("%Y-%m-%d")
-    }
-    
-    whales.append(new_whale)
-    
-    with open(WHALE_LIST_FILE, 'w') as f:
-        json.dump(whales, f, indent=2)
-    
-    return f"✅ Wallet added to Tier 3! Now tracking {len(whales)} whales."
-
-def remove_wallet(address, user_id):
-    """Remove wallet from tracking (admin only)"""
-    if not is_admin(user_id):
-        return "🔒 <b>ACCESS DENIED</b>"
-    
-    with open(WHALE_LIST_FILE, 'r') as f:
-        whales = json.load(f)
-    
-    original_count = len(whales)
-    whales = [w for w in whales if w['address'] != address]
-    
-    if len(whales) == original_count:
-        return f"❌ Wallet not found"
-    
-    with open(WHALE_LIST_FILE, 'w') as f:
-        json.dump(whales, f, indent=2)
-    
-    return f"✅ Wallet removed! Now tracking {len(whales)} whales."
-
-def set_filter(setting, value, user_id):
-    """Set filter value (admin only)"""
-    if not is_admin(user_id):
-        return "🔒 <b>ACCESS DENIED</b>"
-    
-    valid_settings = {
-        'mc_min': 'Min Market Cap',
-        'mc_max': 'Max Market Cap',
-        'liq_min': 'Min Liquidity',
-        'vol_liq_max': 'Max Vol/Liq',
-        'buy_sell_max': 'Max Buy/Sell',
-        'min_age_hours': 'Min Age',
-        'min_txns': 'Min Txns'
-    }
-    
-    if setting not in valid_settings:
-        return f"❌ Invalid setting"
-    
-    try:
-        value = float(value)
-        bot_state['filters'][setting] = value
-        save_bot_state()
-        return f"✅ Updated {valid_settings[setting]} to {value:,.0f}"
-    except:
-        return "❌ Invalid value"
-
-def pause_bot(user_id):
-    """Pause bot monitoring (admin only)"""
-    if not is_admin(user_id):
-        return "🔒 <b>ACCESS DENIED</b>"
-    
-    bot_state['paused'] = True
-    save_bot_state()
-    return "⏸️ <b>BOT PAUSED</b>"
-
-def resume_bot(user_id):
-    """Resume bot monitoring (admin only)"""
-    if not is_admin(user_id):
-        return "🔒 <b>ACCESS DENIED</b>"
-    
-    bot_state['paused'] = False
-    save_bot_state()
-    return "▶️ <b>BOT RESUMED</b>"
-
-# ============================================================
-# COMMAND ROUTER
-# ============================================================
-
-def handle_command(command_text, user_id):
-    """Route commands to appropriate handlers"""
-    parts = command_text.strip().split()
-    command = parts[0].lower()
-    
-    # Remove bot username if present
-    if '@' in command:
-        command = command.split('@')[0]
-    
-    # Route to appropriate handler
-    if command == '/stats':
-        return get_bot_stats()
-    elif command == '/topwhales':
-        return get_top_whales()
-    elif command == '/lastbuys':
-        return get_last_buys()
-    elif command == '/help':
-        return get_help()
-    elif command == '/guide':
-        return get_guide()
-    elif command == '/tracked':
-        return get_tracked_tokens()
-    elif command == '/multibuys':
-        return get_multi_buys()
-    elif command == '/performance':
-        return get_whale_performance_report()
-    elif command == '/filters':
-        return get_filters_info()
-    
-    # TIER SYSTEM COMMANDS
-    elif command == '/tiers':
-        return get_tier_stats()
-    elif command == '/tier1':
-        return get_tier_whales(1)
-    elif command == '/tier2':
-        return get_tier_whales(2)
-    elif command == '/tier3':
-        return get_tier_whales(3)
-    elif command == '/tier4':
-        return get_tier_whales(4)
-    elif command == '/promotions':
-        return get_recent_promotions()
-    
-    # ADMIN COMMANDS
-    elif command == '/addwallet':
-        if len(parts) < 3:
-            return "❌ Usage: /addwallet address chain"
-        return add_wallet(parts[1], parts[2], user_id)
-    elif command == '/removewallet':
-        if len(parts) < 2:
-            return "❌ Usage: /removewallet address"
-        return remove_wallet(parts[1], user_id)
-    elif command == '/setfilter':
-        if len(parts) < 3:
-            return "❌ Usage: /setfilter setting value"
-        return set_filter(parts[1], parts[2], user_id)
-    elif command == '/pause':
-        return pause_bot(user_id)
-    elif command == '/resume':
-        return resume_bot(user_id)
-    else:
-        return "❌ Unknown command. Use /help"
+    return msg
